@@ -1,0 +1,53 @@
+---
+title: "Assignment_5_Heinz_Konrad"
+author: "K Heinz"
+date: "1/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 3.
+
+The information is spread on 80 pages overall (links -> last -> "page = 80").
+Total elements: 1620
+Number 5-16 of the 20 events that are show, are all different categories of the same event.
+
+```{r first}
+
+rm(list = ls())
+
+if (!require("jsonlite")) install.packages("jsonlite")
+if (!require("httr")) install.packages("httr")
+if (!require("rlist")) install.packages("rlist")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("naniar")) install.packages("naniar")
+
+library(jsonlite)
+library(httr)
+library(rlist)
+library(tidyverse)
+library(naniar)
+
+source("/home/weide/api_key.R")
+
+# If I use the variable of the imported api_key.R document, the conten_vIG list shows an error.
+
+venues_in_Germany <- GET("https://app.ticketmaster.com/discovery/v2/events.json?countryCode=DE&apikey=7elxdku9GGG5k8j0Xm8KWdANDgecHMV0")
+content_viG <- content(venues_in_Germany)
+
+n <- as.numeric(content_viG[["page"]][["totalElements"]])
+print(n)
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r second}
+```
