@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## 3.
+## 3. Interacting with the API - the basics
 
 The information is spread on 80 pages overall (links -> last -> "page = 80").
 Total elements: 1620
@@ -32,20 +32,126 @@ library(tidyverse)
 library(naniar)
 
 source("/home/weide/api_key.R")
+# If I use the variable of the imported api_key.R document, the conten_vIG list shows an error, therefore I use the key openly (which)  should not be done with a secret key in practise, of course.
 
-# If I use the variable of the imported api_key.R document, the conten_vIG list shows an error.
-
-venues_in_Germany <- GET("https://app.ticketmaster.com/discovery/v2/events.json?countryCode=DE&apikey=7elxdku9GGG5k8j0Xm8KWdANDgecHMV0")
+#venues_in_Germany <- GET("https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=DE&apikey={api_key}")
+venues_in_Germany <- GET("https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=DE&apikey=7elxdku9GGG5k8j0Xm8KWdANDgecHMV0")
+#glimpse(venues_in_Germany)
 content_viG <- content(venues_in_Germany)
 
-n <- as.numeric(content_viG[["page"]][["totalElements"]])
-print(n)
+
+h <- (content_viG[["_embedded"]][["venues"]])[[1]][["id"]]
+
+
+n = 20
+
+df_germany1 <-
+  data.frame(
+    name = character(n),
+    city = character(n),
+    postalCode = numeric(n),
+    address = character(n),
+    url = character(n),
+    longitude = numeric(n),
+    latitude = numeric(n),
+    stringsAsFactors = FALSE
+  )
+
+
+
+
+search_result <- GET('https://app.ticketmaster.com/discovery/v2/venues/KovZpZAneakA.json?apikey=7elxdku9GGG5k8j0Xm8KWdANDgecHMV0')
+
+con_search_result <- content(search_result)
+
+
+
+#for (i in n){
+  
+  
+  
+  
+  
+
+df_germany1[1,1] <- con_search_result$name
+df_germany1[1,2] <- con_search_result$city$name
+df_germany1[1,3] <- con_search_result$postalCode
+df_germany1[1,4] <- con_search_result$address$line1
+df_germany1[1,5] <- con_search_result$url
+df_germany1[1,6] <- con_search_result$location$longitude
+df_germany1[1,7] <- con_search_result$location$latitude
+
+
+#}
+
+
+
+
+
+json_parsed_search <- fromJSON(content(search_result, as = "text"))[["items"]]
+  
+  df_germany[1:20,] <- json_parsed_search %>% select_(name, city, postalCode, address, url, longitude, latitude)
+
 
 
 
 ```
 
-## Including Plots
+## 4. Interacting with the API - advanced
+
+
+
+
+```{r first}
+
+num <- as.numeric(content_viG[["page"]][["totalElements"]])
+print(num)
+
+
+
+
+
+df_germany <-
+  data.frame(
+    name = character(n),
+    city = character(n),
+    postalCode = numeric(n),
+    address = character(n),
+    url = character(n),
+    longitude = numeric(n),
+    latitude = numeric(n),
+    stringsAsFactors = FALSE
+  )
+
+
+
+# The maximum number of items per request is limited to 25. 
+# If we want to have more, we need to load it in in slices using a loop.
+# Here an example to read in information on the first 125 items:
+
+# for (i in 1:5) {
+#   get_search_result <- GET(url = "http://api.walmartlabs.com/v1/search?",  
+#                            query = list(apiKey = wal_key,
+#                                         query = "chips",
+#                                         numItems = 20,
+#                                         start = ((i - 1) * 20 + 1)))
+#   
+#   json_parsed_search <- fromJSON(content(get_search_result, as = "text"))[["items"]]
+#   
+#   df_germany[((i - 1) * 20 + 1):(i * 20), ] <- json_parsed_search %>%
+#     select(name, city, postalCode, address, url, longitude, latitude)
+#   
+# }
+# 
+
+
+```
+
+
+
+
+
+
 
 You can also embed plots, for example:
 
