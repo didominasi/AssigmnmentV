@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The information is spread on 80 pages overall (links -> last -> "page = 80").
 Total elements: 1620
-Number 5-16 of the 20 events that are show, are all different categories of the same event.
+üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
 
 ```{r first}
 
@@ -41,7 +41,7 @@ venues_in_Germany <- GET(get_url)
 content_viG <- content(venues_in_Germany)
 
 
-id <- (content_viG[["_embedded"]][["venues"]])[[1]][["id"]]
+#id <- (content_viG[["_embedded"]][["venues"]])[[1]][["id"]]
 
 
 n = 20
@@ -61,28 +61,40 @@ df_germany1 <-
 
 
 
-  search_result <- GET('https://app.ticketmaster.com/discovery/v2/venues/{id}.json?apikey=7elxdku9GGG5k8j0Xm8KWdANDgecHMV0')
+i=16
+
+  id <- (content_viG[["_embedded"]][["venues"]])[[i]][["id"]]
+  combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+  search_result <- GET(combined_url)
+  cont_search_result <- content(search_result)
+
+
+
+
+
+
+
+
+for (i in seq(1,20)){
   
-  con_search_result <- content(search_result)
-
-
-
-#for (i in n){
+  id <- (content_viG[["_embedded"]][["venues"]])[[i]][["id"]]
+  combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+  search_result <- GET(combined_url)
+  cont_search_result <- content(search_result)
   
- # id <- (content_viG[["_embedded"]][["venues"]])[[i]][["id"]]
+  df_germany1[i,1] <- cont_search_result$name
+  df_germany1[i,2] <- cont_search_result$city$name
+  df_germany1[i,3] <- cont_search_result$postalCode
+  df_germany1[i,4] <- cont_search_result$address$line1
+  df_germany1[i,5] <- cont_search_result$url
+  if (("location" %in% names(cont_search_result)) == TRUE){
+  df_germany1[i,6] <- cont_search_result$location$longitude
+  df_germany1[i,7] <- cont_search_result$location$latitude
+  }else { df_germany1[i,6] <- NaN
+        df_germany1[i,7] <- NaN
+  }
 
-  
-
-df_germany1[1,1] <- con_search_result$name
-df_germany1[1,2] <- con_search_result$city$name
-df_germany1[1,3] <- con_search_result$postalCode
-df_germany1[1,4] <- con_search_result$address$line1
-df_germany1[1,5] <- con_search_result$url
-df_germany1[1,6] <- con_search_result$location$longitude
-df_germany1[1,7] <- con_search_result$location$latitude
-
-
-#}
+}
 
 
 
