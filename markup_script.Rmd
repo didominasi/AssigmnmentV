@@ -41,17 +41,13 @@ venues_in_Germany <- GET(get_url)
 content_viG <- content(venues_in_Germany)
 
 
-try_pag <- paste0(base_url, "venues.json?countryCode=DE&page=2&apikey=", apikey)
-try_page <- GET(try_pag)
-cont_try <- content(try_page)
-
 n = 20
 
 df_germany1 <-
   data.frame(
     name = character(n),
     city = character(n),
-    postalCode = numeric(n),
+    postalCode = character(n),
     address = character(n),
     url = character(n),
     longitude = numeric(n),
@@ -76,8 +72,10 @@ for (i in seq(1,20)){
   df_germany1[i,6] <- cont_search_result$location$longitude
   df_germany1[i,7] <- cont_search_result$location$latitude
   }else { df_germany1[i,6] <- NaN
-        df_germany1[i,7] <- NaN
+          df_germany1[i,7] <- NaN
   }
+    Sys.sleep(0.25)
+
 
 }
 
@@ -92,23 +90,57 @@ for (i in seq(1,20)){
 ```{r first}
 
 num <- as.numeric(content_viG[["page"]][["totalElements"]])
-print(num)
-
-
-
-
 
 df_germany <-
   data.frame(
-    name = character(n),
-    city = character(n),
-    postalCode = numeric(n),
-    address = character(n),
-    url = character(n),
-    longitude = numeric(n),
-    latitude = numeric(n),
+    name = character(num),
+    city = character(num),
+    postalCode = character(num),
+    address = character(num),
+    url = character(num),
+    longitude = numeric(num),
+    latitude = numeric(num),
     stringsAsFactors = FALSE
   )
+
+
+total_number_pages <- content_viG[["page"]][["totalPages"]]
+
+for (j in seq(0, 5)){
+
+next_page <- paste0(base_url, "venues.json?countryCode=DE&page=" , j , "&apikey=", apikey)
+next_page_url <- GET(next_page)
+cont_next <- content(next_page_url)
+
+  
+
+  for (i in seq(1,20)){
+    
+    id <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
+    combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+    search_result <- GET(combined_url)
+    cont_search_result <- content(search_result)
+    
+    df_germany[(j * 20 + i),1] <- cont_search_result$name
+    df_germany[(j * 20 + i),2] <- cont_search_result$city$name
+    df_germany[(j * 20 + i),3] <- cont_search_result$postalCode
+    if (("address" %in% names(cont_search_result)) == TRUE){
+    df_germany[(j * 20 + i),4] <- cont_search_result$address$line1
+    }else { df_germany[(j * 20 + i),4] <- NaN
+     }
+    df_germany[(j * 20 + i),5] <- cont_search_result$url
+    if (("location" %in% names(cont_search_result)) == TRUE){
+    df_germany[(j * 20 + i),6] <- cont_search_result$location$longitude
+    df_germany[(j * 20 + i),7] <- cont_search_result$location$latitude
+    }else { df_germany[(j * 20 + i),6] <- NaN
+            df_germany[(j * 20 + i),7] <- NaN
+    }
+    Sys.sleep(0.25)
+
+  }
+    Sys.sleep(0.25)
+
+} # outer for-loop
 
 
 
