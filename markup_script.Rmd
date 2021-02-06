@@ -58,18 +58,6 @@ df_germany1 <-
 
 
 
- id <- (content_viG[["_embedded"]][["venues"]])[[2]][["id"]]
-  combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
-  search_result <- GET(combined_url)
-  cont_search_result <- content(search_result)
-
-
-event_url <- paste0(base_url,"events.json?venueId=", id, "&apikey=", apikey)
-search_event <- GET(event_url)
-cont_event <- content(search_event)
-
-
-
 for (i in seq(1,20)){
   
   id <- (content_viG[["_embedded"]][["venues"]])[[i]][["id"]]
@@ -200,21 +188,21 @@ I chose to use Belgium (BE) as the second country.
 
 get_url_be <- paste0(base_url, "venues.json?countryCode=BE&apikey=", apikey)
 
-venues_in_belgium <- GET(get_url)
+venues_in_belgium <- GET(get_url_be)
 content_viB <- content(venues_in_belgium)
 
 
-n = 20
+m = 20
 
 df_belgium1 <-
   data.frame(
-    name = character(n),
-    city = character(n),
-    postalCode = character(n),
-    address = character(n),
-    url = character(n),
-    longitude = numeric(n),
-    latitude = numeric(n),
+    name = character(m),
+    city = character(m),
+    postalCode = character(m),
+    address = character(m),
+    url = character(m),
+    longitude = numeric(m),
+    latitude = numeric(m),
     stringsAsFactors = FALSE
   )
 
@@ -224,18 +212,18 @@ df_belgium1 <-
 for (i in seq(1,20)){
   
   id_be <- (content_viB[["_embedded"]][["venues"]])[[i]][["id"]]
-  combined_url_be <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
-  search_result_be <- GET(combined_url)
-  cont_search_result_be <- content(search_result)
+  combined_url_be <- paste0(base_url, "venues/", id_be, ".json?apikey=", apikey )
+  search_result_be <- GET(combined_url_be)
+  cont_search_result_be <- content(search_result_be)
   
-  df_belgium1[i,1] <- cont_search_result$name
-  df_belgium1[i,2] <- cont_search_result$city$name
-  df_belgium1[i,3] <- cont_search_result$postalCode
-  df_belgium1[i,4] <- cont_search_result$address$line1
-  df_belgium1[i,5] <- cont_search_result$url
-  if (("location" %in% names(cont_search_result)) == TRUE){
-  df_belgium1[i,6] <- cont_search_result$location$longitude
-  df_belgium1[i,7] <- cont_search_result$location$latitude
+  df_belgium1[i,1] <- cont_search_result_be$name
+  df_belgium1[i,2] <- cont_search_result_be$city$name
+  df_belgium1[i,3] <- cont_search_result_be$postalCode
+  df_belgium1[i,4] <- cont_search_result_be$address$line1
+  df_belgium1[i,5] <- cont_search_result_be$url
+  if (("location" %in% names(cont_search_result_be)) == TRUE){
+  df_belgium1[i,6] <- cont_search_result_be$location$longitude
+  df_belgium1[i,7] <- cont_search_result_be$location$latitude
   }else { df_belgium1[i,6] <- NaN
           df_belgium1[i,7] <- NaN
   }
@@ -249,17 +237,17 @@ for (i in seq(1,20)){
 ######## NR. 4   #########
 
 
-num_be <- as.numeric(content_viG[["page"]][["totalElements"]])
+num_be <- as.numeric(content_viB[["page"]][["totalElements"]])
 
 df_belgium <-
   data.frame(
-    name = character(num),
-    city = character(num),
-    postalCode = character(num),
-    address = character(num),
-    url = character(num),
-    longitude = numeric(num),
-    latitude = numeric(num),
+    name = character(num_be),
+    city = character(num_be),
+    postalCode = character(num_be),
+    address = character(num_be),
+    url = character(num_be),
+    longitude = numeric(num_be),
+    latitude = numeric(num_be),
     stringsAsFactors = FALSE
   )
 
@@ -270,8 +258,8 @@ for (j in seq(0, 7)){
 
 Sys.sleep(0.3)
 next_page_be <- paste0(base_url, "venues.json?countryCode=BE&page=" , j , "&apikey=", apikey)
-next_page_url_be <- GET(next_page)
-cont_next_be <- content(next_page_url)
+next_page_url_be <- GET(next_page_be)
+cont_next_be <- content(next_page_url_be)
 
   
 
@@ -280,20 +268,20 @@ cont_next_be <- content(next_page_url)
     Sys.sleep(0.3)
     id_be <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
     combined_url_be <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
-    search_result_be <- GET(combined_url)
-    cont_search_result_be <- content(search_result)
+    search_result_be <- GET(combined_url_be)
+    cont_search_result_be <- content(search_result_be)
     
-    df_belgium[(j * 20 + i),1] <- cont_search_result$name
-    df_belgium[(j * 20 + i),2] <- cont_search_result$city$name
-    df_belgium[(j * 20 + i),3] <- cont_search_result$postalCode
-    if (("address" %in% names(cont_search_result)) == TRUE){
-    df_belgium[(j * 20 + i),4] <- cont_search_result$address$line1
+    df_belgium[(j * 20 + i),1] <- cont_search_result_be$name
+    df_belgium[(j * 20 + i),2] <- cont_search_result_be$city$name
+    df_belgium[(j * 20 + i),3] <- cont_search_result_be$postalCode
+    if (("address" %in% names(cont_search_result_be)) == TRUE){
+    df_belgium[(j * 20 + i),4] <- cont_search_result_be$address$line1
     }else { df_belgium[(j * 20 + i),4] <- NaN
      }
-    df_belgium[(j * 20 + i),5] <- cont_search_result$url
-    if (("location" %in% names(cont_search_result)) == TRUE){
-    df_belgium[(j * 20 + i),6] <- cont_search_result$location$longitude
-    df_belgium[(j * 20 + i),7] <- cont_search_result$location$latitude
+    df_belgium[(j * 20 + i),5] <- cont_search_result_be$url
+    if (("location" %in% names(cont_search_result_be)) == TRUE){
+    df_belgium[(j * 20 + i),6] <- cont_search_result_be$location$longitude
+    df_belgium[(j * 20 + i),7] <- cont_search_result_be$location$latitude
     }else { df_belgium[(j * 20 + i),6] <- NaN
             df_belgium[(j * 20 + i),7] <- NaN
     }
@@ -304,7 +292,37 @@ cont_next_be <- content(next_page_url)
 } # outer for-loop
 
 
+######## NR. 5   #########
+
+  #venues_be <- df_belgium1[, 6:7]
+  #zu <- as.numeric(df_belgium1$latitude[1])
+  
+  ggplot() +
+  geom_polygon(
+  aes(x = long, y = lat, group = group), data = map_data("world", region = "Belgium"),
+  fill = "grey90",color = "black") +
+  theme_void() + coord_quickmap() +
+  geom_point(data= venues_be, aes(x = as.numeric(longitude), y = as.numeric(latitude))) +
+  labs(title = "Event locations across Belgium", caption = "Source: ticketmaster.com") +
+  theme(title = element_text(size=8, face='bold'),
+  plot.caption = element_text(face = "italic")) +
+  ylim(49.5072, 51.4978) 
+  #xlim(6.3831, 2.583333) 
+
+    #geom_point(data = venues_be , aes(x = venues_be$longitude, y = venues_be$latitude)) +
+  #xlim(2.583333, 6.3831) +
+  #ylim(49.5072, 51.4978) 
+  #geom_point(aes(zu, 50.02708))
+  #geom_point(aes(as.numeric(df_belgium1$longitude)), (df_belgium1$latitude))
 
 
+
+#   print((geom_point(aes(x= df_belgium$longitude, y= df_belgium$latitude), colour="blue")) , + ) 
+# }
+
+
+
+
+  
 
 ```
