@@ -56,6 +56,20 @@ df_germany1 <-
   )
 
 
+
+
+ id <- (content_viG[["_embedded"]][["venues"]])[[2]][["id"]]
+  combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+  search_result <- GET(combined_url)
+  cont_search_result <- content(search_result)
+
+
+event_url <- paste0(base_url,"events.json?venueId=", id, "&apikey=", apikey)
+search_event <- GET(event_url)
+cont_event <- content(search_event)
+
+
+
 for (i in seq(1,20)){
   
   id <- (content_viG[["_embedded"]][["venues"]])[[i]][["id"]]
@@ -87,7 +101,7 @@ for (i in seq(1,20)){
 
 
 
-```{r first}
+```{r second}
 
 num <- as.numeric(content_viG[["page"]][["totalElements"]])
 
@@ -106,8 +120,9 @@ df_germany <-
 
 total_number_pages <- content_viG[["page"]][["totalPages"]]
 
-for (j in seq(0, 5)){
+for (j in seq(0, 7)){
 
+Sys.sleep(0.3)
 next_page <- paste0(base_url, "venues.json?countryCode=DE&page=" , j , "&apikey=", apikey)
 next_page_url <- GET(next_page)
 cont_next <- content(next_page_url)
@@ -116,6 +131,7 @@ cont_next <- content(next_page_url)
 
   for (i in seq(1,20)){
     
+    Sys.sleep(0.3)
     id <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
     combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
     search_result <- GET(combined_url)
@@ -135,44 +151,160 @@ cont_next <- content(next_page_url)
     }else { df_germany[(j * 20 + i),6] <- NaN
             df_germany[(j * 20 + i),7] <- NaN
     }
-    Sys.sleep(0.25)
+   
 
   }
+
+} # outer for-loop
+
+
+```
+
+## 5. Visualizing the extracted data
+
+
+
+
+
+```{r third}
+
+library(ggplot2)
+
+ggplot() +
+geom_polygon(
+aes(x = long, y = lat, group = group), data = map_data("world", region = "Germany"),
+fill = "grey90",color = "black") +
+theme_void() + coord_quickmap() +
+labs(title = "Event locations across Germany", caption = "Source: ticketmaster.com") +
+theme(title = element_text(size=8, face='bold'),
+plot.caption = element_text(face = "italic"))
+
+
+
+
+
+```
+
+## 6. Event locations in other countries
+
+I chose to use Belgium (BE) as the second country.
+
+
+
+
+
+```{r fourth}
+
+######## NR. 3   #########
+
+
+get_url_be <- paste0(base_url, "venues.json?countryCode=BE&apikey=", apikey)
+
+venues_in_belgium <- GET(get_url)
+content_viB <- content(venues_in_belgium)
+
+
+n = 20
+
+df_belgium1 <-
+  data.frame(
+    name = character(n),
+    city = character(n),
+    postalCode = character(n),
+    address = character(n),
+    url = character(n),
+    longitude = numeric(n),
+    latitude = numeric(n),
+    stringsAsFactors = FALSE
+  )
+
+
+
+
+for (i in seq(1,20)){
+  
+  id_be <- (content_viB[["_embedded"]][["venues"]])[[i]][["id"]]
+  combined_url_be <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+  search_result_be <- GET(combined_url)
+  cont_search_result_be <- content(search_result)
+  
+  df_belgium1[i,1] <- cont_search_result$name
+  df_belgium1[i,2] <- cont_search_result$city$name
+  df_belgium1[i,3] <- cont_search_result$postalCode
+  df_belgium1[i,4] <- cont_search_result$address$line1
+  df_belgium1[i,5] <- cont_search_result$url
+  if (("location" %in% names(cont_search_result)) == TRUE){
+  df_belgium1[i,6] <- cont_search_result$location$longitude
+  df_belgium1[i,7] <- cont_search_result$location$latitude
+  }else { df_belgium1[i,6] <- NaN
+          df_belgium1[i,7] <- NaN
+  }
     Sys.sleep(0.25)
+
+
+}
+
+
+
+######## NR. 4   #########
+
+
+num_be <- as.numeric(content_viG[["page"]][["totalElements"]])
+
+df_belgium <-
+  data.frame(
+    name = character(num),
+    city = character(num),
+    postalCode = character(num),
+    address = character(num),
+    url = character(num),
+    longitude = numeric(num),
+    latitude = numeric(num),
+    stringsAsFactors = FALSE
+  )
+
+
+total_number_pages_be <- content_viB[["page"]][["totalPages"]]
+
+for (j in seq(0, 7)){
+
+Sys.sleep(0.3)
+next_page_be <- paste0(base_url, "venues.json?countryCode=BE&page=" , j , "&apikey=", apikey)
+next_page_url_be <- GET(next_page)
+cont_next_be <- content(next_page_url)
+
+  
+
+  for (i in seq(1,20)){
+    
+    Sys.sleep(0.3)
+    id_be <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
+    combined_url_be <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+    search_result_be <- GET(combined_url)
+    cont_search_result_be <- content(search_result)
+    
+    df_belgium[(j * 20 + i),1] <- cont_search_result$name
+    df_belgium[(j * 20 + i),2] <- cont_search_result$city$name
+    df_belgium[(j * 20 + i),3] <- cont_search_result$postalCode
+    if (("address" %in% names(cont_search_result)) == TRUE){
+    df_belgium[(j * 20 + i),4] <- cont_search_result$address$line1
+    }else { df_belgium[(j * 20 + i),4] <- NaN
+     }
+    df_belgium[(j * 20 + i),5] <- cont_search_result$url
+    if (("location" %in% names(cont_search_result)) == TRUE){
+    df_belgium[(j * 20 + i),6] <- cont_search_result$location$longitude
+    df_belgium[(j * 20 + i),7] <- cont_search_result$location$latitude
+    }else { df_belgium[(j * 20 + i),6] <- NaN
+            df_belgium[(j * 20 + i),7] <- NaN
+    }
+   
+
+  }
 
 } # outer for-loop
 
 
 
-# The maximum number of items per request is limited to 25. 
-# If we want to have more, we need to load it in in slices using a loop.
-# Here an example to read in information on the first 125 items:
-
-# for (i in 1:5) {
-#   get_search_result <- GET(url = "http://api.walmartlabs.com/v1/search?",  
-#                            query = list(apiKey = wal_key,
-#                                         query = "chips",
-#                                         numItems = 20,
-#                                         start = ((i - 1) * 20 + 1)))
-#   
-#   json_parsed_search <- fromJSON(content(get_search_result, as = "text"))[["items"]]
-#   
-#   df_germany[((i - 1) * 20 + 1):(i * 20), ] <- json_parsed_search %>%
-#     select(name, city, postalCode, address, url, longitude, latitude)
-#   
-# }
-# 
 
 
-```
-
-
-
-
-
-
-
-You can also embed plots, for example:
-
-```{r second}
 ```
