@@ -11,6 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 3. Interacting with the API - the basics
 
+The content of the response is spread on 3 different object: "_embedded", "links" and "page".
+The first contains a list of 20 venues in Germany which store some information variables
+about each venue. The "_links" object contains several links (href) to the first,
+current, next last page containing 20 venues each. The page object gives us information
+about the size of each page (20 venues), the number of pages/elements overall and
+the current page:
+
 The information is spread on 238 pages overall (page -> "totalPages" = 238").
 total elements: content_viG[["page"]][["totalPages"]] --> 238
 total elements:   content_viG[["page"]][["totalElements"]]  --> 4743
@@ -86,8 +93,7 @@ for (i in seq(1,20)){
 
 ## 4. Interacting with the API - advanced
 
-
-
+I use a for loop to access all the pages that contain venues in Germany.
 
 ```{r second}
 
@@ -110,7 +116,7 @@ total_number_pages <- content_viG[["page"]][["totalPages"]]
 
 for (j in seq(0, 7)){
 
-Sys.sleep(0.3)
+
 next_page <- paste0(base_url, "venues.json?countryCode=DE&page=" , j , "&apikey=", apikey)
 next_page_url <- GET(next_page)
 cont_next <- content(next_page_url)
@@ -119,7 +125,6 @@ cont_next <- content(next_page_url)
 
   for (i in seq(1,20)){
     
-    Sys.sleep(0.3)
     id <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
     combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
     search_result <- GET(combined_url)
@@ -131,19 +136,32 @@ cont_next <- content(next_page_url)
     if (("address" %in% names(cont_search_result)) == TRUE){
     df_germany[(j * 20 + i),4] <- cont_search_result$address$line1
     }else { df_germany[(j * 20 + i),4] <- NaN
-     }
+    }
     df_germany[(j * 20 + i),5] <- cont_search_result$url
-    if (("location" %in% names(cont_search_result)) == TRUE){
-    df_germany[(j * 20 + i),6] <- cont_search_result$location$longitude
-    df_germany[(j * 20 + i),7] <- cont_search_result$location$latitude
-    }else { df_germany[(j * 20 + i),6] <- NaN
-            df_germany[(j * 20 + i),7] <- NaN
+    
+    long <- df_germany[(j * 20 + i),6]
+    lat <- df_germany[(j * 20 + i),7]
+    if ("location" %in% names(cont_search_result) == TRUE) {
+    long <- cont_search_result$location$longitude
+    lat <- cont_search_result$location$latitude
+    } else{ long <- NaN
+           lat <- NaN
+    }
+    
+    if ((long >= 15.043611) || (long <= 5.866944) || (lat <= 47.271679) || (lat >= 55.0846)) {
+      long <- NaN
+      lat <- NaN
     }
    
+   
 
+  Sys.sleep(2.3)
   }
-
+  Sys.sleep(2.3)
 } # outer for-loop
+
+
+
 
 
 ```
@@ -163,9 +181,12 @@ geom_polygon(
 aes(x = long, y = lat, group = group), data = map_data("world", region = "Germany"),
 fill = "grey90",color = "black") +
 theme_void() + coord_quickmap() +
+geom_point(data= df_germany, aes(x = as.numeric(longitude), y = as.numeric(latitude))) +
 labs(title = "Event locations across Germany", caption = "Source: ticketmaster.com") +
 theme(title = element_text(size=8, face='bold'),
 plot.caption = element_text(face = "italic"))
+xlim(5.866944, 15.043611)
+ylim(47.271679, 55.0846)
 
 
 
@@ -309,17 +330,7 @@ cont_next_be <- content(next_page_url_be)
   ylim(49.5072, 51.4978) 
   #xlim(6.3831, 2.583333) 
 
-    #geom_point(data = venues_be , aes(x = venues_be$longitude, y = venues_be$latitude)) +
-  #xlim(2.583333, 6.3831) +
-  #ylim(49.5072, 51.4978) 
-  #geom_point(aes(zu, 50.02708))
-  #geom_point(aes(as.numeric(df_belgium1$longitude)), (df_belgium1$latitude))
-
-
-
-#   print((geom_point(aes(x= df_belgium$longitude, y= df_belgium$latitude), colour="blue")) , + ) 
-# }
-
+ 
 
 
 
