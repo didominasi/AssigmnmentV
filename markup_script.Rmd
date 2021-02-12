@@ -9,6 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+The link to my GitHub repository: https://github.com/didominasi/AssigmnmentV.git
+
+
 ## 3. Interacting with the API - the basics
 
 The content of the response is spread on 3 different object: "_embedded", "links" and "page".
@@ -42,7 +45,7 @@ source("/home/weide/api_key.R")
 
 base_url <- "https://app.ticketmaster.com/discovery/v2/"
 
-get_url <- paste0(base_url, "venues.json?countryCode=DE&apikey=", apikey)
+get_url <- paste0(base_url, "venues.json?countryCode=DE&locale=*&apikey=", apikey)
 
 venues_in_Germany <- GET(get_url)
 content_viG <- content(venues_in_Germany)
@@ -62,21 +65,28 @@ df_germany1 <-
     stringsAsFactors = FALSE
   )
 
-
-
-
 for (i in seq(1,20)){
   
   id <- (content_viG[["_embedded"]][["venues"]])[[i]][["id"]]
-  combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+  combined_url <- paste0(base_url, "venues/", id, ".json?locale=*&apikey=", apikey )
   search_result <- GET(combined_url)
   cont_search_result <- content(search_result)
   
+  if (("name" %in% names(cont_search_result)) == TRUE){
   df_germany1[i,1] <- cont_search_result$name
+  }else{df_germany1[i,1] <- NaN}
+  if (("city" %in% names(cont_search_result)) == TRUE){
   df_germany1[i,2] <- cont_search_result$city$name
+  }else{ df_germany1[i,2] <- NaN}
+  if (("postalCode" %in% names(cont_search_result)) == TRUE){
   df_germany1[i,3] <- cont_search_result$postalCode
+  }else{df_germany1[i,3] <- NaN}
+  if (("postalCode" %in% names(cont_search_result)) == TRUE){
   df_germany1[i,4] <- cont_search_result$address
+  }else{df_germany1[i,4] <- NaN}
+  if (("postalCode" %in% names(cont_search_result)) == TRUE){
   df_germany1[i,5] <- cont_search_result$url
+  }else{df_germany1[i,5] <- NaN}
   if (("location" %in% names(cont_search_result) == TRUE) &&
         (as.numeric(cont_search_result$location$longitude) <= 15.043611) &&
         (as.numeric(cont_search_result$location$longitude) >= 5.866944) &&
@@ -119,10 +129,10 @@ df_germany <-
 
 total_number_pages <- content_viG[["page"]][["totalPages"]]
 
-for (j in seq(0, total_number_pages)){
+for (j in seq(0, total_number_pages - 1)){
 
 
-next_page <- paste0(base_url, "venues.json?countryCode=DE&page=" , j , "&apikey=", apikey)
+next_page <- paste0(base_url, "venues.json?countryCode=DE&page=" , j , "&locale=*&apikey=", apikey)
 next_page_url <- GET(next_page)
 cont_next <- content(next_page_url)
 
@@ -131,7 +141,7 @@ cont_next <- content(next_page_url)
   for (i in seq(1,20)){
     
     id <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
-    combined_url <- paste0(base_url, "venues/", id, ".json?apikey=", apikey )
+    combined_url <- paste0(base_url, "venues/", id, ".json?locale=*&apikey=", apikey )
     search_result <- GET(combined_url)
     cont_search_result <- content(search_result)
     
@@ -147,7 +157,8 @@ cont_next <- content(next_page_url)
     df_germany[(j * 20 + i),3] <- cont_search_result$postalCode
     }else{ df_germany[(j * 20 + i),3] <-NaN
     }
-    if (("address" %in% names(cont_search_result)) == TRUE){
+    if (("address" %in% names(cont_search_result) == TRUE) &&
+        (length(cont_search_result$address) != 0)) {
     df_germany[(j * 20 + i),4] <- cont_search_result$address
     }else { df_germany[(j * 20 + i),4] <- NaN
     }
@@ -165,12 +176,12 @@ cont_next <- content(next_page_url)
     }else{ df_germany[(j * 20 + i),6] <- NaN
            df_germany[(j * 20 + i),7] <- NaN
     }
-    
-  Sys.sleep(1)
+  
+  if ((j * 20 + i) == 4743){break}
+  Sys.sleep(0.2)
   }
-  Sys.sleep(1)
 } # outer for-loop
-
+  
 ```
 
 ## 5. Visualizing the extracted data
@@ -192,8 +203,8 @@ geom_point(data= df_germany, aes(x = as.numeric(longitude), y = as.numeric(latit
 labs(title = "Event locations across Germany", caption = "Source: ticketmaster.com") +
 theme(title = element_text(size=8, face='bold'),
 plot.caption = element_text(face = "italic")) +
-#xlim(5.866944, 15.043611) +
 ylim(47.271679, 55.0846)
+#xlim(5.866944, 15.043611) +
 
 
 
@@ -214,7 +225,7 @@ I chose to use Belgium (BE) as the second country.
 ######## NR. 3   #########
 
 
-get_url_be <- paste0(base_url, "venues.json?countryCode=BE&apikey=", apikey)
+get_url_be <- paste0(base_url, "venues.json?locale=*&countryCode=BE&apikey=", apikey)
 
 venues_in_belgium <- GET(get_url_be)
 content_viB <- content(venues_in_belgium)
@@ -240,15 +251,25 @@ df_belgium1 <-
 for (i in seq(1,20)){
   
   id_be <- (content_viB[["_embedded"]][["venues"]])[[i]][["id"]]
-  combined_url_be <- paste0(base_url, "venues/", id_be, ".json?apikey=", apikey )
+  combined_url_be <- paste0(base_url, "venues/", id_be, ".json?locale=*&apikey=", apikey )
   search_result_be <- GET(combined_url_be)
   cont_search_result_be <- content(search_result_be)
   
+  if (("name" %in% names(cont_search_result_be)) == TRUE){
   df_belgium1[i,1] <- cont_search_result_be$name
+  }else{df_belgium1[i,1] <- NaN}
+  if (("city" %in% names(cont_search_result_be)) == TRUE){
   df_belgium1[i,2] <- cont_search_result_be$city$name
+  }else{df_belgium1[i,2] <- NaN}
+  if (("postalCode" %in% names(cont_search_result_be)) == TRUE){
   df_belgium1[i,3] <- cont_search_result_be$postalCode
+  }else{df_belgium1[i,3] <- NaN}
+  if (("address" %in% names(cont_search_result_be)) == TRUE){
   df_belgium1[i,4] <- cont_search_result_be$address
+  }else{df_belgium1[i,4] <- NaN}
+  if (("url" %in% names(cont_search_result_be)) == TRUE){
   df_belgium1[i,5] <- cont_search_result_be$url
+  }else{df_belgium1[i,5] <- NaN}
   if (("location" %in% names(cont_search_result_be) == TRUE) &&
     (as.numeric(cont_search_result_be$location$longitude) <= 6.3831) &&
     (as.numeric(cont_search_result_be$location$longitude) >= 2.583333) &&
@@ -259,8 +280,7 @@ for (i in seq(1,20)){
   }else { df_belgium1[i,6] <- NaN
           df_belgium1[i,7] <- NaN
   }
-    Sys.sleep(1)
-
+    Sys.sleep(0.3)
 
 }
 
@@ -286,7 +306,7 @@ df_belgium <-
 
 total_number_pages_be <- content_viB[["page"]][["totalPages"]]
 
-for (j in seq(0, total_number_pages_be)){
+for (j in seq(0, total_number_pages_be - 1)){
 
 next_page_be <- paste0(base_url, "venues.json?countryCode=BE&page=" , j , "&apikey=", apikey)
 next_page_url_be <- GET(next_page_be)
@@ -332,9 +352,9 @@ cont_next_be <- content(next_page_url_be)
             df_belgium[(j * 20 + i),7] <- NaN
     }
    
-  Sys.sleep(0.25)
+  if ((j*20 + 1) == 867){break}
+  Sys.sleep(0.2)
   }
-  Sys.sleep(0.25)
 
 } # outer for-loop
 
@@ -342,8 +362,7 @@ cont_next_be <- content(next_page_url_be)
 ######## NR. 5   #########
 
   venues_be <- df_belgium[, 6:7]
-  #zu <- as.numeric(df_belgium1$latitude[1])
-  
+
   ggplot() +
   geom_polygon(
   aes(x = long, y = lat, group = group), data = map_data("world", region = "Belgium"),
