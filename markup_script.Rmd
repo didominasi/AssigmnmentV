@@ -108,7 +108,16 @@ for (i in seq(1,20)){
 ## 4. Interacting with the API - advanced
 
 I use a for loop to access all the pages that contain venues in Germany.
-Instead of creating my own "next_event" variable I could also use
+After creating the empty dataframe I loop through the number of pages in the outer
+for-loop. For each page, I create the url for the API request for the link for the 
+consecutive page. After using "GET" and "content" I use another (inner) for loop
+through all venues on each page to access this content. In each iteration of this 
+loop one page (usually 20 venues) are filled in the previously created dataset.
+For each variable I check if the requested variable of the venue is available.
+Even though this is the case for the vast majority, there are some variables that 
+have some missing values which causes the entire programm to hault.
+For the location (long/lat) I implement another test in order to set all coordinates
+that are not within the border of the nation-state to NaN.
 
 ```{r second}
 
@@ -136,9 +145,9 @@ next_page <- paste0(base_url, "venues.json?countryCode=DE&page=" , j , "&locale=
 next_page_url <- GET(next_page)
 cont_next <- content(next_page_url)
 
-  
+number_venues <- length(cont_next[["_embedded"]][["venues"]])
 
-  for (i in seq(1,20)){
+  for (i in seq(1, number_venues)){
     
     id <- (cont_next[["_embedded"]][["venues"]])[[i]][["id"]]
     combined_url <- paste0(base_url, "venues/", id, ".json?locale=*&apikey=", apikey )
@@ -176,8 +185,8 @@ cont_next <- content(next_page_url)
     }else{ df_germany[(j * 20 + i),6] <- NaN
            df_germany[(j * 20 + i),7] <- NaN
     }
-  
-  if ((j * 20 + i) == 4743){break}
+  totalElements <- content_viG[["page"]][["totalElements"]]
+  if ((j * 20 + i) == totalElements){break}
   Sys.sleep(0.2)
   }
 } # outer for-loop
@@ -306,18 +315,17 @@ df_belgium <-
 
 total_number_pages_be <- content_viB[["page"]][["totalPages"]]
 
-for (j in seq(0, total_number_pages_be - 1)){
-
-next_page_be <- paste0(base_url, "venues.json?countryCode=BE&page=" , j , "&apikey=", apikey)
+for (j in seq(0, total_number_pages_be -1)){
+next_page_be <- paste0(base_url, "venues.json?locale=*&countryCode=BE&page=" , j , "&apikey=", apikey)
 next_page_url_be <- GET(next_page_be)
 cont_next_be <- content(next_page_url_be)
 
-  
+number_venue_list <- length(cont_next_be[["_embedded"]][["venues"]])
 
-  for (i in seq(1,20)){
+  for (i in seq(1, number_venue_list)){
     
     id_be <- (cont_next_be[["_embedded"]][["venues"]])[[i]][["id"]]
-    combined_url_be <- paste0(base_url, "venues/", id_be, ".json?apikey=", apikey )
+    combined_url_be <- paste0(base_url, "venues/", id_be, ".json?locale=*&apikey=", apikey )
     search_result_be <- GET(combined_url_be)
     cont_search_result_be <- content(search_result_be)
     
@@ -351,8 +359,8 @@ cont_next_be <- content(next_page_url_be)
     }else { df_belgium[(j * 20 + i),6] <- NaN
             df_belgium[(j * 20 + i),7] <- NaN
     }
-   
-  if ((j*20 + 1) == 867){break}
+  totalElement_be <- content_viB[["page"]][["totalElements"]]
+  if ((j*20 + 1) == totalElement_be){break}
   Sys.sleep(0.2)
   }
 
